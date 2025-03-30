@@ -8,32 +8,28 @@ The environmental variable `CF_API_KEY` is _required_ to be set in order for the
 
 `python main.py [-IHS]`
 
-`-I, --ipaddress`
+>`-I, --ipaddress`
+>IP address to apply, optional.
+>If an IP address isn't provided, it'll pull the outgoing IP from the machine running the script.
 
-IP address to apply, optional.
+>`-H, --hostname`
+>Target hostname, **required**.
 
-If an IP address isn't provided, it'll pull the outgoing IP from the machine running the script.
-
-`-H, --hostname`
-
-Target hostname, required.
-
-`-S, --subdomain`
-
-Target subdomain, optional.
-
-If a subdomain isn't provided, the script will only pass in the hostname.
+>`-S, --subdomain`
+>Target subdomain, optional.
+>If a subdomain isn't provided, the script will only pass in the hostname.
 
 # Examples
 
-`python main.py -H foo.bar -S baz`
+> ### Change IP of hostname
+> `python main.py -H foo.bar`
+> Sets foo.bar to the machine's outgoing IP address.
 
-baz.foo.bar -> machine's IP
 
-`python main.py -H foo.bar`
+> ### Change IP of hostname with a subdomain
+> `python main.py -H foo.bar -S baz`
+> Sets baz.foo.bar to the machine's outgoing IP address.
 
-foo.bar -> machine's IP
-
-`python main.py -I 1.1.1.1 -H foo.bar`
-
-foo.bar -> 1.1.1.1
+> ### Set hostname with a custom IP
+> `python main.py -I 1.1.1.1 -H foo.bar`
+> Sets foo.bar's IP address to 1.1.1.1.
