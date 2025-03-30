@@ -6,15 +6,15 @@ This is a simple script to update the IP of a DNS using the command line.
 
 `python main.py [-IHS]`
 
--I, --ipaddress
+`-I, --ipaddress`
 IP address to apply, optional.
 
 If an IP address isn't provided, it'll pull the outgoing IP from the machine running the script.
 
--H, --hostname
+`-H, --hostname`
 Target hostname, required.
 
--S, --subdomain
+`-S, --subdomain`
 Target subdomain, optional.
 
 If a subdomain isn't provided, the script will only pass in the hostname.
