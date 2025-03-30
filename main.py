@@ -1,19 +1,45 @@
-import requests, os, json
+import requests, os, json, argparse, re
 
 def main():
 
+    parser = argparse.ArgumentParser(prog='DNS-IP Helper',
+                    description='Sets the DNS to an IP address (if specified), otherwise defaults to the outgoing IP of the machine running this script.')
+
+    parser.add_argument("-I", "--ipaddress", help = "IP address to apply, optional.")
+    parser.add_argument("-H", "--hostname", help = "Target hostname, required.")
+    parser.add_argument("-S", "--subdomain", help = "Target subdomain, optional.")
+    args = parser.parse_args()
+
     API_KEY=os.getenv('CF_API_KEY')
-
-    ip_request = requests.get("https://ifconfig.me/ip")
-    current_ip = ip_request.text
-
-    if ip_request.status_code != 200:
-        print(f"ERROR: {ip_request.status_code}\nREASON: {ip_request.content}\n Error retrieving IP, quitting.")
-        return
-
     if API_KEY is None:
-        print("Environment variable CF_API_KEY is not set, quitting.")
+        print("Environment variable CF_API_KEY is not set.")
         return
+
+    if args.hostname:
+        hostname = args.hostname
+    else:
+        print("Invalid hostname.")
+        return
+    
+    if args.subdomain:
+        subdomain = args.subdomain+"."+args.hostname
+    else:
+        subdomain = hostname
+
+    if args.ipaddress:
+        match = re.search(r"\b(?:(?:2(?:[0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])\.){3}(?:(?:2([0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9]))\b", args.ipaddress)
+        if match:
+            current_ip = args.ipaddress
+        else:
+            print("Invalid IP address.")
+            return
+    else:
+        ip_request = requests.get("https://ifconfig.me/ip")
+        current_ip = ip_request.text
+
+        if ip_request.status_code != 200:
+            print(f"ERROR: {ip_request.status_code}\nREASON: {ip_request.content}\n Error retrieving IP.")
+            return
 
     print("Checking if server IP needs to be updated...")
 
@@ -21,22 +47,31 @@ def main():
 
     list_zones_url = f'https://api.cloudflare.com/client/v4/zones'
     list_zones_request = requests.get(url= list_zones_url, headers= head)
+    if list_zones_request.status_code != 200:
+            print(f"ERROR: {list_zones_request.status_code}\nREASON: {list_zones_request.content}\n Error retrieving zone ID.")
+            return
     list_zones_content = json.loads(list_zones_request.content)
-    ZONE_ID = next(x for x in list_zones_content['result'] if x['name'] == 'jdkendall.com')['id']
+    ZONE_ID = next(x for x in list_zones_content['result'] if x['name'] == f'{hostname}')['id']
+
 
     list_records_url = f'https://api.cloudflare.com/client/v4/zones/{ZONE_ID}/dns_records'
     list_records_request = requests.get(url= list_records_url, headers= head)
+    if list_records_request.status_code != 200:
+            print(f"ERROR: {list_records_request.status_code}\nREASON: {list_records_request.content}\n Error retrieving record.")
+            return
     list_records_content = json.loads(list_records_request.content)
-    DNS_RECORD_ID = next(x for x in list_records_content['result'] if x['name'] == 'minecraft.jdkendall.com' and x['type'] == 'A')['id']
+    try:
+        DNS_RECORD_ID = next(x for x in list_records_content['result'] if x['name'] == f'{subdomain}' and x['type'] == 'A')['id']
+    except StopIteration:
+        print("No matching record found. Did you use the right hostname (or subdomain)?")
+        return
 
     
     url = f'https://api.cloudflare.com/client/v4/zones/{ZONE_ID}/dns_records/{DNS_RECORD_ID}'
     get_ip_request = requests.get(url = url, headers= head)
     server_content = json.loads(get_ip_request.content)
 
-    if get_ip_request.status_code == 200:
-        print(f"SUCCESS: {get_ip_request.status_code}")
-    else:
+    if get_ip_request.status_code != 200:
         print(f"ERROR: {get_ip_request.status_code}\nREASON: {server_content['errors']}")
         return
 
@@ -45,7 +80,7 @@ def main():
 
 
     if current_ip == server_ip:
-        print("IPs are the same. No change needed, quitting.")
+        print("IPs are the same. No change needed.")
         return
     
     print("Different IPs found. Attempting update...")
