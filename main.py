@@ -3,7 +3,7 @@ import requests, os, json, argparse, re
 def main():
 
     parser = argparse.ArgumentParser(prog='DNS-IP Helper',
-                    description='Sets the DNS to an IP address (if specified), otherwise defaults to the outgoing IP of the machine running this script.')
+                    description='Sets the DNS to an IP address (if specified), otherwise defaults to the outgoing IP of the current machine.')
 
     parser.add_argument("-I", "--ipaddress", help = "IP address to apply, optional.")
     parser.add_argument("-H", "--hostname", help = "Target hostname, required.")
