@@ -57,10 +57,10 @@ def main():
             current_time = int(time.time())
             print(f"Time since last update (in minutes): {(int)((current_time - shelve_file['timestamp'])/60)}")
             if(current_time-shelve_file['timestamp'] < CHECK_TIMEOUT):
-                print("Too soon to generate new cache (< 10 min). Nothing to do here.")
+                print("Too soon to generate new cache. Nothing to do here.")
                 return
             else:
-                print("Cache oudated (> 10 min), fetching server IP via API.")
+                print("Cache oudated, fetching server IP via API.")
     else:
         print("Cache not found, generating new cache file and fetching server IP via API.")
 
