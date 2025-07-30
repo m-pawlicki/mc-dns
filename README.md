@@ -1,6 +1,6 @@
 # DNS-IP Helper
 
-This is a small script to update the IP of a DNS using the command line. Requires python to be installed.
+This is a small script to update the IP of a DNS using the command line. Requires Python to run.
 
 The environmental variable `CF_API_KEY` is _required_ to be set in order for the script to run. Uses Cloudflare API calls under the hood.
 
