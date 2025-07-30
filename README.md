@@ -33,3 +33,6 @@ The environmental variable `CF_API_KEY` is _required_ to be set in order for the
 > ### Set hostname with a custom IP
 > `python main.py -I 1.1.1.1 -H foo.bar`
 > Sets foo.bar's IP address to 1.1.1.1.
+
+# Contributing
+If you'd like to contribute, please fork the repository and open a pull request to the `main` branch.
