@@ -1,0 +1,5 @@
+# .dockerignore
+.env
+cache.txt
+data
+cache

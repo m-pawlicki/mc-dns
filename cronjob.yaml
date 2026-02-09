@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: dns
+spec:
+  schedule: "*/10 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: dns
+            image: dns-helper:latest
+            imagePullPolicy: IfNotPresent
+            command:
+            - docker run --rm -v dns-data:/app/data dns-helper:latest
+          restartPolicy: OnFailure

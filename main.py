@@ -1,4 +1,4 @@
-import requests, os, json, argparse, re, shelve, time
+import requests, os, json, argparse, re, shelve, time, dotenv
 
 def main():
 
@@ -10,9 +10,15 @@ def main():
     parser.add_argument("-S", "--subdomain", help = "Target subdomain, optional.")
     args = parser.parse_args()
 
-    shelve_file = shelve.open("dns.txt")
     CHECK_TIMEOUT = 600 # (600 seconds = 10 min)
+    DATA_DIR = "data"
 
+    if not os.path.exists("data"):
+        os.mkdir(DATA_DIR)
+    
+    shelve_file = shelve.open(f"{DATA_DIR}/cache")
+
+    dotenv.load_dotenv(f"{DATA_DIR}/.env")
     API_KEY=os.getenv('CF_API_KEY')
     if API_KEY is None:
         print("Environment variable CF_API_KEY is not set.")
@@ -121,7 +127,7 @@ def main():
         print(f"SUCCESS: {patch_request.status_code}")
         print("IP updated.")
     else:
-        print(f"ERROR: {patch_request.status_code}\nREASON: {patch_content["errors"]}")
+        print(f"ERROR: {patch_request.status_code}\nREASON: {patch_content['errors']}")
         return
     
 if __name__ == "__main__":
