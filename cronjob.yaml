@@ -1,17 +1,78 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dns-data
+  namespace: dns-helper
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Mi
+  storageClassName: local-path
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dns-helper
+  labels:
+    name: dns-helper
+
+---
+
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: dns
+  name: dns-cronjob
+  namespace: dns-helper
 spec:
   schedule: "*/10 * * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
   jobTemplate:
     spec:
       template:
+        metadata:
+          labels:
+            app: dns-helper
         spec:
+          restartPolicy: Never
           containers:
-          - name: dns
-            image: dns-helper:latest
-            imagePullPolicy: IfNotPresent
-            command:
-            - docker run --rm -v dns-data:/app/data dns-helper:latest
-          restartPolicy: OnFailure
+            - name: dns-jdk-minecraft
+              image: alpha-pi:30500/dns-helper:latest
+              args: [ "-H", "jdkendall.com", "-S", "minecraft" ]
+              volumeMounts:
+                - name: dns-secrets
+                  readOnly: true
+                  mountPath: /etc/secrets
+                - name: dns-data
+                  mountPath: /app/data
+
+            - name: dns-jdk-rust
+              image: alpha-pi:30500/dns-helper:latest
+              args: [ "-H", "jdkendall.com", "-S", "rust" ]
+              volumeMounts:
+                - name: dns-secrets
+                  readOnly: true
+                  mountPath: /etc/secrets
+                - name: dns-data
+                  mountPath: /app/data
+
+            - name: dns-jacob-minecraft
+              image: alpha-pi:30500/dns-helper:latest
+              args: [ "-H", "jacob-kendall.com", "-S", "minecraft" ]
+              volumeMounts:
+                - name: dns-secrets
+                  readOnly: true
+                  mountPath: /etc/secrets
+                - name: dns-data
+                  mountPath: /app/data
+
+          volumes:
+            - name: dns-secrets
+              secret:
+                secretName: dns-secrets
+            - name: dns-data
+              persistentVolumeClaim:
+                claimName: dns-data

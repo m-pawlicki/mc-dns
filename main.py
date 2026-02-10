@@ -1,4 +1,4 @@
-import requests, os, json, argparse, re, shelve, time, dotenv
+import requests, os, json, argparse, re, shelve, time, dotenv, sys
 
 def main():
 
@@ -11,14 +11,17 @@ def main():
     args = parser.parse_args()
 
     CHECK_TIMEOUT = 600 # (600 seconds = 10 min)
-    DATA_DIR = "data"
+    CACHE_DIR = "data"
+    SECRET_DIR = "/etc/secrets"
 
-    if not os.path.exists("data"):
-        os.mkdir(DATA_DIR)
+    if len(sys.argv) == 1:
+        parser.print_help()
+        return
     
-    shelve_file = shelve.open(f"{DATA_DIR}/cache")
+    if not os.path.exists(CACHE_DIR):
+        os.mkdir(CACHE_DIR)
 
-    dotenv.load_dotenv(f"{DATA_DIR}/.env")
+    dotenv.load_dotenv(f"{SECRET_DIR}/.env")
     API_KEY=os.getenv('CF_API_KEY')
     if API_KEY is None:
         print("Environment variable CF_API_KEY is not set.")
@@ -31,9 +34,10 @@ def main():
         return
     
     if args.subdomain:
-        subdomain = args.subdomain+"."+args.hostname
+        domain = args.subdomain+"."+args.hostname
+        sub = args.subdomain
     else:
-        subdomain = hostname
+        domain = hostname
 
     if args.ipaddress:
         match = re.search(r"\b(?:(?:2(?:[0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])\.){3}(?:(?:2([0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9]))\b", args.ipaddress)
@@ -54,6 +58,8 @@ def main():
 
     print("Searching for cache...")
 
+    shelve_file = shelve.open(f"{CACHE_DIR}/{domain}.cache")
+
     if 'ip' in shelve_file:
         print("Cache exists! Checking IP...")
         cached_ip = shelve_file['ip']
@@ -71,6 +77,7 @@ def main():
         print("Cache not found, generating new cache file and fetching server IP via API.")
 
     head = {'Authorization':f'Bearer {API_KEY}'}
+    post_head = {'Authorization':f'Bearer {API_KEY}', 'Content-Type':'application/json'}
 
     list_zones_url = f'https://api.cloudflare.com/client/v4/zones'
     list_zones_request = requests.get(url= list_zones_url, headers= head)
@@ -88,9 +95,14 @@ def main():
             return
     list_records_content = json.loads(list_records_request.content)
     try:
-        DNS_RECORD_ID = next(x for x in list_records_content['result'] if x['name'] == f'{subdomain}' and x['type'] == 'A')['id']
+        DNS_RECORD_ID = next(x for x in list_records_content['result'] if x['name'] == f'{domain}' and x['type'] == 'A')['id']
     except StopIteration:
-        print("No matching record found. Did you use the right hostname (or subdomain)?")
+        print("No matching record found. Adding new subdomain and exiting...")
+        post_payload = json.dumps({"content": f"{current_ip}", "name": f"{sub}", "type": "A"})
+        post_new_subdomain = requests.post(url= list_records_url, headers= post_head, data= post_payload)
+        if post_new_subdomain.status_code != 200:
+            print(f"ERROR: {post_new_subdomain.status_code}\nREASON: {post_new_subdomain.content}\n Error creating new subdomain.")
+            return
         return
 
         
