@@ -1,6 +1,8 @@
 # DNS-IP Helper
 
-This is a small script to update the IP of a DNS using the command line. Requires Python to run.
+Our personal server's IP kept changing and breaking the domain so I wrote something to help update the IP on the provided entries on Cloudflare and if it doesn't find an entry, will make one for you! Comes with a cache with a timeout to curb excessive API calls because how often does the IP change, anyway?
+
+Requires Python to run. Now comes with its own Dockerfile for easy building and deployment!
 
 The environmental variable `CF_API_KEY` is _required_ to be set in order for the script to run. Uses Cloudflare API calls under the hood.
 
