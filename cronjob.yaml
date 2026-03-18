@@ -27,11 +27,12 @@ metadata:
   name: dns-cronjob
   namespace: dns-helper
 spec:
-  schedule: "*/10 * * * *"
+  schedule: "*/30 * * * *"
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 1
   jobTemplate:
     spec:
+      ttlSecondsAfterFinished: 120
       template:
         metadata:
           labels:
@@ -52,6 +53,16 @@ spec:
             - name: dns-jdk-rust
               image: alpha-pi:30500/dns-helper:latest
               args: [ "-H", "jdkendall.com", "-S", "rust" ]
+              volumeMounts:
+                - name: dns-secrets
+                  readOnly: true
+                  mountPath: /etc/secrets
+                - name: dns-data
+                  mountPath: /app/data
+
+            - name: dns-jdk-ha
+              image: alpha-pi:30500/dns-helper:latest
+              args: [ "-H", "jdkendall.com", "-S", "ha" ]
               volumeMounts:
                 - name: dns-secrets
                   readOnly: true
