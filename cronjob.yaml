@@ -44,7 +44,7 @@ spec:
         spec:
           restartPolicy: Never
           containers:
-            - name: dns-jdk-minecraft
+            - name: dns-jdk-minec  raft
               image: alpha-pi:30500/dns-helper:latest
               args: [ "-H", "jdkendall.com", "-S", "minecraft" ]
               volumeMounts:
@@ -57,16 +57,6 @@ spec:
             - name: dns-jdk-rust
               image: alpha-pi:30500/dns-helper:latest
               args: [ "-H", "jdkendall.com", "-S", "rust" ]
-              volumeMounts:
-                - name: dns-secrets
-                  readOnly: true
-                  mountPath: /etc/secrets
-                - name: dns-data
-                  mountPath: /app/data
-
-            - name: dns-jdk-ha
-              image: alpha-pi:30500/dns-helper:latest
-              args: [ "-H", "jdkendall.com", "-S", "ha" ]
               volumeMounts:
                 - name: dns-secrets
                   readOnly: true
