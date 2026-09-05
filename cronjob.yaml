@@ -45,7 +45,7 @@ spec:
         spec:
           restartPolicy: Never
           containers:
-            - name: dns-jdk-minec  raft
+            - name: dns-jdk-minecraft
               image: alpha-pi:30500/dns-helper:latest
               args: [ "-H", "jdkendall.com", "-S", "minecraft" ]
               volumeMounts:
