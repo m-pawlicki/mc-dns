@@ -1,0 +1,14 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: mc-dns
+  description: Updates Cloudflare DNS records to match a server's current outgoing IP address.
+  annotations:
+    backstage.io/kubernetes-id: mc-dns
+  links:
+    - url: https://github.com/m-pawlicki/mc-dns
+      title: Repository (GitHub)
+spec:
+  type: service
+  lifecycle: production
+  owner: user:default/m-pawlicki
