@@ -41,6 +41,7 @@ spec:
         metadata:
           labels:
             app: dns-helper
+            backstage.io/kubernetes-id: mc-dns
         spec:
           restartPolicy: Never
           containers:
